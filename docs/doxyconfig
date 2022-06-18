@@ -1,0 +1,22 @@
+INPUT                  = @PROJECT_SOURCE_DIR@/README.md \
+                         @PROJECT_SOURCE_DIR@/include/gathering \
+                         @PROJECT_SOURCE_DIR@/src
+RECURSIVE              = YES
+INPUT_ENCODING         = UTF-8
+HTML_OUTPUT            = @CMAKE_CURRENT_BINARY_DIR@/docs/html
+GENERATE_LATEX         = NO
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = "Gathering Simulator"
+PROJECT_BRIEF          = TODO
+OUTPUT_LANGUAGE        = English
+USE_MDFILE_AS_MAINPAGE = README.md
+EXTRACT_ALL            = YES
+TAB_SIZE               = 4
+WARNINGS               = YES
+GENERATE_TREEVIEW      = YES
+DISABLE_INDEX          = YES
+# INCLUDE_GRAPH          = YES
+# INCLUDED_BY_GRAPH      = YES
+# HAVE_DOT = YES
+# ENABLE_PREPROCESSING = YES
+# SEARCH_INCLUDES = YES

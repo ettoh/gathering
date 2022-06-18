@@ -1,0 +1,17 @@
+# Visual Studio
+.vs/
+.vscode/
+CMakeSettings.json
+
+# Build files
+build/
+out/
+
+# Blender files
+*.mtl
+
+# (copyright)
+resources/models
+
+# Private files
+pnotes.ipynb
