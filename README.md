@@ -1,5 +1,7 @@
 # Gathering
 
+![example](https://raw.githubusercontent.com/wiki/mc-thulu/gathering/web/sides.png)
+
 ## Download
 This repository contains submodules for external dependencies. When doing a fresh clone, make sure you clone recursively:
 ```
