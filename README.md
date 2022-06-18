@@ -18,6 +18,8 @@ git submodule update
 
 ## Build
 ### CMake options
+(temporary)
+
 |Option                          |Description|Default|
 |--------------------------------|---|---|
 |``GATHERING_CREATE_DOCS=ON``  |Create doxygen documentation|``OFF``|

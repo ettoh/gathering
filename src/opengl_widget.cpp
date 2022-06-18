@@ -39,7 +39,7 @@ void OpenGLWidget::init() {
     glfwWindowHint(GLFW_SAMPLES, 4);  // anti aliasing
 
     // Create window with graphics context
-    window = glfwCreateWindow(1280, 720, "Gathering", NULL, NULL);
+    window = glfwCreateWindow(1920, 1080, "Gathering", NULL, NULL);  // TODO parameter
     if (window == NULL) return;
     glfwMakeContextCurrent(window);
     glfwSwapInterval(0);  // vsync
@@ -79,7 +79,9 @@ void OpenGLWidget::init() {
     GLuint vertex_shader = createShader("shader/basic.vert", GL_VERTEX_SHADER);
     GLuint vertex_static_shader = createShader("shader/static.vert", GL_VERTEX_SHADER);
     GLuint frag_shader = createShader("shader/shaded.frag", GL_FRAGMENT_SHADER);
+    GLuint frag_non_shaded = createShader("shader/non_shaded.frag", GL_FRAGMENT_SHADER);
     mvp_prog = createProgram(vertex_shader, frag_shader);
+    mvp_prog_non_shaded = createProgram(vertex_shader, frag_non_shaded);
     static_prog = createProgram(vertex_static_shader, frag_shader);
 
     // bind uniform vbo to programs
@@ -87,6 +89,9 @@ void OpenGLWidget::init() {
     GLuint index = glGetUniformBlockIndex(mvp_prog, "Global");
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, vbo_uniforms);
     glUniformBlockBinding(mvp_prog, index, 1);
+    index = glGetUniformBlockIndex(mvp_prog_non_shaded, "Global");
+    glBindBufferBase(GL_UNIFORM_BUFFER, 1, vbo_uniforms);
+    glUniformBlockBinding(mvp_prog_non_shaded, index, 1);
     index = glGetUniformBlockIndex(static_prog, "Global");
     glBindBufferBase(GL_UNIFORM_BUFFER, 1, vbo_uniforms);
     glUniformBlockBinding(static_prog, index, 1);
@@ -133,6 +138,23 @@ void OpenGLWidget::init() {
     glVertexAttribDivisor(6, 1);
     glVertexAttribDivisor(7, 1);
     glBindVertexArray(0);
+}
+
+// ------------------------------------------------------------------------------------------------
+
+void OpenGLWidget::setImageMode(bool image_mode) {
+    is_image_mode = image_mode;
+    auto ret = object_names.find("vessel");
+    if (ret != object_names.end()) {
+        objects[ret->second].enabled = !image_mode;
+    }
+
+    ret = object_names.find("particles");
+    if (ret != object_names.end()) {
+        objects[ret->second].gl_program = image_mode ? mvp_prog_non_shaded : mvp_prog;
+    }
+
+    clear_color = image_mode ? glm::vec3(0) : glm::vec3(0.09f);
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -209,8 +231,6 @@ void OpenGLWidget::renderFrame() {
     if (!window_visible) return;
 #endif
 
-    glm::vec3 clear_color = glm::vec3(0.09f);
-
     if (glfwWindowShouldClose(window)) {
         // if the window is about to close - just don't! we may need the glfw context for
         // headless computing or later if the user wants the graphical output back. Just
@@ -233,7 +253,7 @@ void OpenGLWidget::renderFrame() {
 
     // render new frame
     renderScene();
-    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+    if (!is_image_mode) ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 
     // swap
     glfwSwapBuffers(window);
@@ -310,14 +330,20 @@ void OpenGLWidget::updateScene(const Scene& scene) {
     glm::mat4 total_rotation = world_rotation * camera_rotation;
     glm::vec4 look_direction = total_rotation * glm::vec4(camera_look, 1.f);
     camera_position += glm::vec3(total_rotation * glm::vec4(camera_movement, 1.f) * dt * 3.f);
-    view = glm::lookAt(camera_position,
-                       camera_position + glm::vec3(look_direction),
-                       glm::vec3(0.0f, 1.0f, 0.0f));  // (position, look at, up)
+    if (!is_image_mode) {
+        view = glm::lookAt(camera_position,
+                           camera_position + glm::vec3(look_direction),
+                           glm::vec3(0.0f, 1.0f, 0.0f));  // (position, look at, up)
+    }
 
     // Calc MVP
     GLint viewport[4];
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    projection = glm::perspective(45.0f, 1.0f * viewport[2] / viewport[3], 0.01f, 100.0f);
+    glGetIntegerv(GL_VIEWPORT, viewport);  // viewport: x, y, width, height
+
+    // projection matrix
+    if (!is_image_mode) {
+        projection = glm::perspective(45.0f, 1.0f * viewport[2] / viewport[3], 0.01f, 100.0f);
+    }
 
     // push mvp to VBO
     glBindBuffer(GL_UNIFORM_BUFFER, vbo_uniforms);
@@ -369,7 +395,7 @@ void OpenGLWidget::prepareInstance(Scene& scene) {
 
     // particles
     OpenGLPrimitives::Object particles = OpenGLPrimitives::createSphere(
-        float(RADIUS_PARTICLE), glm::vec3(0.f), 5, glm::vec4(1, 0, 0, 1));
+        float(RADIUS_PARTICLE), glm::vec3(0.f), 5, glm::vec4(1, 1, 1, 1));
     particles.name = "particles";
     particles.drawInstanced = true;
     particles.instance_count = scene.particles.size();
@@ -380,31 +406,9 @@ void OpenGLWidget::prepareInstance(Scene& scene) {
     // vessel
     scene.vessel.gl_draw_mode = GL_TRIANGLES;
     scene.vessel.gl_vao = vao;
+    scene.vessel.name = "vessel";
     scene.vessel.gl_program = static_prog;
     raw_objects.push_back(scene.vessel);
-
-    // AABB of the vessel
-    // glm::vec3 box_size = scene.vessel_bb.max - scene.vessel_bb.min;
-    // glm::vec3 box_center = scene.vessel_bb.min + box_size / 2.f;
-    // OpenGLPrimitives::Object box =
-    //     OpenGLPrimitives::createCuboid(box_size, box_center, glm::vec4(0, 1, 0, 0.2f));
-    // box.gl_program = static_prog;
-    // box.gl_vao = vao;
-    // raw_objects.push_back(box);
-
-    // box_size = scene.octree.p_child[0]->radius * 2.f;
-    // box_center = scene.octree.p_child[0]->center;
-    // box = OpenGLPrimitives::createCuboid(box_size, box_center, glm::vec4(1, 0, 0, 0.2f));
-    // box.gl_program = static_prog;
-    // box.gl_vao = vao;
-    // raw_objects.push_back(box);
-
-    // box_size = scene.octree.p_child[1]->radius * 2.f;
-    // box_center = scene.octree.p_child[1]->center;
-    // box = OpenGLPrimitives::createCuboid(box_size, box_center, glm::vec4(0, 0, 1, 0.2f));
-    // box.gl_program = static_prog;
-    // box.gl_vao = vao;
-    // raw_objects.push_back(box);
 
     // sort raw_objects by their VAO/program in order to reduce sate changes
     pushStaticSceneToGPU(raw_objects);

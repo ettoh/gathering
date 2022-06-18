@@ -98,6 +98,7 @@ target_include_directories(gathering
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         external/glad/include
+        external/stb
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )

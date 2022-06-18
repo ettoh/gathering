@@ -31,6 +31,5 @@ void main(void) {
     vec3 color = vec3(0.0);
     color += diffuse_color * ambient; // ambient
     color += diffuse_color * lambertian * light_color; // diffuse
-
     output_color = vec4(color, occ);    
 }

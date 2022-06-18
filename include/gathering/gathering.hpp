@@ -29,6 +29,7 @@ class Simulation {
     void runTime(const int milliseconds, ForceSchedule& schedule, const bool headless);
     void runSteps(const int n, ForceSchedule& schedule, const bool headless);
     void run(ForceSchedule& schedule, const bool headless);
+    void take_images(const int& slice_count);
 
     float dt = 0.0;
 

@@ -15,11 +15,12 @@ int main() {
     force_schedule.push_back({250, gathering::Direction::UP * force});
     force_schedule.push_back({100, gathering::Direction::DOWN * force});
 
-    simulation.addParticles(1000, 1.0f, 0.01f);
+    simulation.addParticles(5000, 1.0f, 0.01f);
     // simulation.runTime(20, force_schedule, true);
     // simulation.showCurrentState();
     // simulation.run(force_schedule, true);
-    simulation.runTime(400, force_schedule, true);
+    simulation.runTime(100, force_schedule, false);
+    simulation.take_images(6);
     simulation.showCurrentState();
 
     return 0;

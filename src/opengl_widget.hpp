@@ -41,8 +41,10 @@ class OpenGLWidget {
      * #define GATHERING_AUTO_HEADLESS to avoid this behavior.
      */
     void updateScene(const Scene& scene);
-
     void setWindowVisibility(const bool is_visible);
+    void setImageMode(bool is_imagemode);
+    void setView(const glm::mat4& view) { this->view = view; }
+    void setProjection(const glm::mat4& projection) { this->projection = projection; }
 
    private:
     void init();
@@ -62,9 +64,11 @@ class OpenGLWidget {
     GLFWwindow* window = nullptr;
     StopWatch<std::chrono::microseconds> stop_watch = StopWatch<std::chrono::microseconds>();
     bool window_visible = true;  // whether the glfw window is visible or not
+    glm::vec3 clear_color = glm::vec3(0.09f);
+    bool is_image_mode = false;
 
     // handler
-    GLuint mvp_prog = 0u, static_prog = 0u;
+    GLuint mvp_prog = 0u, mvp_prog_non_shaded = 0u, static_prog = 0u;
     GLuint vbo_static = 0u, ibo_static = 0u, vbo_uniforms = 0u;
     GLuint vao = 0u;
     OpenGLPrimitives::GLBuffer<glm::mat4> buffer_transformations;
