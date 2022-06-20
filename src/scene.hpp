@@ -27,7 +27,8 @@ class Scene {
     std::vector<Triangle> triangles;
     glm::vec3 global_force = glm::vec3(0.0f);
     OpenGLPrimitives::Object vessel;
-    AABB vessel_bb = AABB(glm::vec3(0), glm::vec3(0));
+    AABB vessel_bb = AABB(glm::vec3(std::numeric_limits<float>::infinity()),
+                          glm::vec3(-std::numeric_limits<float>::infinity()));
 
    private:
     void findCollisionsParticles();
