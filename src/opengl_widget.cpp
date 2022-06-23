@@ -296,7 +296,7 @@ void OpenGLWidget::renderScene() {
 
 // ------------------------------------------------------------------------------------------------
 
-void OpenGLWidget::updateScene(const Scene& scene) {
+void OpenGLWidget::updateScene(const SceneData& scene) {
 #ifdef GATHERING_AUTO_HEADLESS
     // do nothing if the glfw window is not visible
     if (!window_visible) return;
@@ -389,7 +389,7 @@ void OpenGLWidget::updateScene(const Scene& scene) {
 
 // ------------------------------------------------------------------------------------------------
 
-void OpenGLWidget::prepareInstance(Scene& scene) {
+void OpenGLWidget::prepareInstance(SceneData& scene) {
     deleteInstance();
     std::vector<OpenGLPrimitives::Object> raw_objects;
 

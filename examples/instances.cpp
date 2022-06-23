@@ -1,4 +1,4 @@
-#include <gathering/gathering.hpp>
+#include <gathering/simulation.hpp>
 
 int main() {
     gathering::Simulation simulation = gathering::Simulation("cut1_2.obj", 0.03f);
@@ -20,8 +20,9 @@ int main() {
     // simulation.showCurrentState();
     // simulation.run(force_schedule, true);
     simulation.runTime(100, force_schedule, false);
-    simulation.take_images(6);
-    simulation.showCurrentState();
+    // simulation.take_images(6);
+    // simulation.showCurrentState();
+    simulation.run(force_schedule, false);
 
     return 0;
 }

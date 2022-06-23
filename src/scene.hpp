@@ -15,10 +15,9 @@ namespace gathering {
 typedef std::pair<size_t, size_t> particle_pair;
 constexpr vec3i AMOUNT_CELLS = vec3i(200);  // TODO get rid
 
-class Scene {
+struct SceneData {
    public:
-    Scene(const char* file);
-    void update(const float dt);
+    SceneData(const char* file);
     void addParticles(const int n, const float mass_mean, const float mass_stddev);
     void gridCoordsArea(const AABB& aabb, std::vector<vec3i>& affected_cells) const;
     vec3i gridCoords(const glm::vec3& pos) const;
@@ -29,20 +28,17 @@ class Scene {
     OpenGLPrimitives::Object vessel;
     AABB vessel_bb = AABB(glm::vec3(std::numeric_limits<float>::infinity()),
                           glm::vec3(-std::numeric_limits<float>::infinity()));
-
-   private:
-    void findCollisionsParticles();
-    void findCollisionsTriangles();
-    void loadObject(const char* path);
-    Grid grid = Grid();
-    Array3D<std::vector<size_t>> cells =
-        Array3D<std::vector<size_t>>(AMOUNT_CELLS.x, AMOUNT_CELLS.y, AMOUNT_CELLS.z, {});
-
     Grid particle_grid = Grid();
     std::vector<particle_pair>
         collisions_particle;  // memory for reported collisions between two particles
     std::vector<size_t> collisions_vessel;
     std::vector<size_t> close_particles;
+    Array3D<std::vector<size_t>> cells =
+        Array3D<std::vector<size_t>>(AMOUNT_CELLS.x, AMOUNT_CELLS.y, AMOUNT_CELLS.z, {});
+
+   private:
+    void loadObject(const char* path);
+    Grid grid = Grid();
 
     // properties of the scene
     glm::vec3 max_triangle_size = glm::vec3(0);

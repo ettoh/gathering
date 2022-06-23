@@ -1,6 +1,5 @@
 #include "scene.hpp"
 
-#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <random>
@@ -12,7 +11,7 @@ namespace gathering {
 
 using glm::vec3;
 
-Scene::Scene(const char* file) {
+SceneData::SceneData(const char* file) {
     loadObject(file);
     close_particles.reserve(32);
 
@@ -21,7 +20,7 @@ Scene::Scene(const char* file) {
 }
 
 // TODO improve
-void Scene::addParticles(const int n, const float mass_mean, const float mass_stddev) {
+void SceneData::addParticles(const int n, const float mass_mean, const float mass_stddev) {
     std::default_random_engine generator;
     std::normal_distribution<float> distribution(mass_mean, mass_stddev);
     Array3D<bool> inside_cells(AMOUNT_CELLS.x,
@@ -135,155 +134,7 @@ void Scene::addParticles(const int n, const float mass_mean, const float mass_st
 
 // ------------------------------------------------------------------------------------------------
 
-// TODO improve
-void Scene::update(const float dt) {
-    const float max_speed = 2.0f * RADIUS_PARTICLE / dt;
-    const float max_speed_sqr = max_speed * max_speed;
-
-    // move particles
-    for (auto& particle : particles) {
-        particle.velocity += ((particle.acceleration + global_force) / particle.mass) * dt;
-
-        // max speed
-        if (glm::dot(particle.velocity, particle.velocity) >= max_speed_sqr) {
-#ifdef GATHERING_DEBUGPRINTS
-            std::cout << "too fast" << std::endl;
-#endif
-            particle.velocity = glm::normalize(particle.velocity) * max_speed * 0.95f;
-        }
-
-        particle.old_position = particle.position;
-        particle.position += particle.velocity * dt;
-        particle.bb =
-            AABB(particle.position - RADIUS_PARTICLE, particle.position + RADIUS_PARTICLE);
-
-        // clear particle grid
-        // TODO use coherence?
-        particle_grid.clear(particle.particle_grid_position);
-    }
-
-    for (size_t i = 0; i < particles.size(); ++i) {
-        Particle& particle = particles[i];
-        // update particle grid
-        particle.particle_grid_position = particle_grid.coords(particle.position);
-        particle_grid.insert(particle.particle_grid_position, i);
-    }
-
-    // collision with particles
-    collisions_particle.clear();
-    findCollisionsParticles();
-
-    // TODO handle multiple collisions
-    for (const auto& collision : collisions_particle) {
-        Particle& p1 = particles[collision.first];
-        Particle& p2 = particles[collision.second];
-
-        glm::vec3 dpos = p2.position - p1.position;
-        glm::vec3 dvel = p2.velocity - p1.velocity;
-        double dx = glm::dot(dpos, dpos) - glm::dot(dpos + dvel, dpos + dvel);
-        // particles move towards each other?
-        if (dx <= 0.0) continue;
-
-        float e = 0.5f;
-        vec3 n = glm::normalize(p2.position - p1.position);
-        vec3 dv = (1.f + e) * (p2.velocity - p1.velocity);
-        vec3 nodge = (glm::dot(dv, n) / glm::dot(n, 2.f * n)) * n;
-        p1.new_velocity += nodge;
-        p2.new_velocity -= nodge;
-    }
-
-    // collision with vessel
-    collisions_vessel.clear();
-    findCollisionsTriangles();
-
-    for (const size_t& particle_idx : collisions_vessel) {
-        Particle& p = particles[particle_idx];
-        // remove duplicate elements
-        std::sort(p.close_triangles.begin(), p.close_triangles.end());
-        p.close_triangles.erase(
-            std::unique(p.close_triangles.begin(), p.close_triangles.end()),
-            p.close_triangles.end());
-
-        for (const size_t& triangle_idx : p.close_triangles) {
-            // narrow phase
-            Triangle& t = triangles[triangle_idx];
-            if (!p.intersect(t)) continue;  // triangle
-
-            // is the particle moving away from triangle?
-            vec3 v = p.position - t.a;
-            float distance = glm::abs(glm::dot(v, t.normal));
-            float dot = glm::dot(distance * t.normal, p.velocity);
-            // particle moves towards vessel?
-            if (dot <= 0.0) continue;
-
-            float e = 0.5f;
-            vec3 n = t.normal;
-            vec3 dv = -(1.f + e) * (p.velocity);
-            vec3 nodge = (glm::dot(dv, n)) * n;
-            p.new_velocity += nodge + (p.old_position - p.position) * 0.5f;
-            p.position = p.position - n * glm::length(p.position - p.old_position) *
-                                          1.01f;  // push away from vessel to reduce bleeding
-        }
-        p.close_triangles.clear();
-    }
-
-    // apply changes to particles
-    for (auto& p : particles) {
-        p.velocity += p.new_velocity;
-        p.new_velocity = vec3(0.0);
-        p.velocity /= 1.01;  // apply drag
-    }
-}
-
-// ------------------------------------------------------------------------------------------------
-
-void Scene::findCollisionsParticles() {
-    for (size_t particle_idx = 0; particle_idx < particles.size(); ++particle_idx) {
-        const Particle& p = particles[particle_idx];
-
-        // find which neighbouring cells have to be checked
-        glm::vec3 deviation = p.position - particle_grid.cellCenter(p.particle_grid_position);
-        int neighbour_index = 0;
-        if (deviation.x > 0.0f) neighbour_index |= 1;
-        if (deviation.y > 0.0f) neighbour_index |= 2;
-        if (deviation.z > 0.0f) neighbour_index |= 4;
-
-        close_particles.clear();
-        particle_grid.closeUniqueElements(
-            p.particle_grid_position, particle_idx, neighbour_index, close_particles);
-
-        for (const auto& particle2_idx : close_particles) {
-            if (p.intersect(particles[particle2_idx])) {
-                collisions_particle.push_back({particle_idx, particle2_idx});
-            }
-        }
-    }
-}
-
-// ------------------------------------------------------------------------------------------------
-
-void Scene::findCollisionsTriangles() {
-    bool collision_found;
-    for (size_t particle_idx = 0; particle_idx < particles.size(); particle_idx++) {
-        collision_found = false;
-        Particle& p = particles[particle_idx];
-        std::vector<vec3i> affected_cells;
-        gridCoordsArea(p.bb, affected_cells);
-        for (const vec3i& cell : affected_cells) {
-            for (const size_t triangle_idx : cells.at(cell.x, cell.y, cell.z)) {
-                const Triangle& t = triangles[triangle_idx];
-                if (!p.intersect(t.bb)) continue;  // AABB
-                p.close_triangles.push_back(triangle_idx);
-                collision_found = true;
-            }
-        }
-        if (collision_found) collisions_vessel.push_back(particle_idx);
-    }
-}
-
-// ------------------------------------------------------------------------------------------------
-
-void Scene::loadObject(const char* path) {
+void SceneData::loadObject(const char* path) {
     std::cout << "Loading object ..." << std::endl;
     StopWatch<std::chrono::milliseconds> stopwatch = StopWatch<std::chrono::milliseconds>();
     std::ifstream file(path);
@@ -406,7 +257,7 @@ void Scene::loadObject(const char* path) {
 
 // ------------------------------------------------------------------------------------------------
 
-vec3i Scene::gridCoords(const glm::vec3& pos) const {
+vec3i SceneData::gridCoords(const glm::vec3& pos) const {
     // TODO point in AABB of vessel??
     vec3 grid_size = vessel_bb.max - vessel_bb.min;  // TODO pre compute?
     return ((pos - vessel_bb.min) * (glm::vec<3, float>)AMOUNT_CELLS) / grid_size;
@@ -414,7 +265,7 @@ vec3i Scene::gridCoords(const glm::vec3& pos) const {
 
 // ------------------------------------------------------------------------------------------------
 
-void Scene::gridCoordsArea(const AABB& aabb, std::vector<vec3i>& affected_cells) const {
+void SceneData::gridCoordsArea(const AABB& aabb, std::vector<vec3i>& affected_cells) const {
     // in any cell at all?
     if (!aabb.intersect(vessel_bb)) {
         return;

@@ -1,3 +1,6 @@
+#ifndef GATHERING_SIMULATION_H
+#define GATHERING_SIMUALTION_H
+
 #include <memory>
 #include <vector>
 
@@ -40,6 +43,11 @@ class Simulation {
     void Simulation::computeFrame(ForceSchedule& schedule,
                                   const bool headless,
                                   const size_t max_frame);
+    void update(const float dt);
+    void findCollisionsParticles();
+    void findCollisionsTriangles();
 };
 
 }  // namespace gathering
+
+#endif

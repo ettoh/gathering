@@ -83,7 +83,7 @@ set(external_files
 # source files
 target_sources(gathering
     PRIVATE
-        src/gathering.cpp
+        src/simulation.cpp
         src/opengl_widget.cpp
         src/opengl_primitives.cpp
         src/opengl_toolkit.cpp

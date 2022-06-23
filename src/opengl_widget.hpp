@@ -25,7 +25,7 @@ class OpenGLWidget {
     ~OpenGLWidget();
     OpenGLWidget(const OpenGLWidget&) = delete;
     OpenGLWidget& operator=(const OpenGLWidget&) = delete;
-    void prepareInstance(Scene& scene);
+    void prepareInstance(SceneData& scene);
     bool closed() const { return !window_visible; }
 
     /**
@@ -40,7 +40,7 @@ class OpenGLWidget {
      * Note: If the glwf window is not visible, this function won't do anything. You can use
      * #define GATHERING_AUTO_HEADLESS to avoid this behavior.
      */
-    void updateScene(const Scene& scene);
+    void updateScene(const SceneData& scene);
     void setWindowVisibility(const bool is_visible);
     void setImageMode(bool is_imagemode);
     void setView(const glm::mat4& view) { this->view = view; }
