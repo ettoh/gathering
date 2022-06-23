@@ -45,6 +45,7 @@ class OpenGLWidget {
     void setImageMode(bool is_imagemode);
     void setView(const glm::mat4& view) { this->view = view; }
     void setProjection(const glm::mat4& projection) { this->projection = projection; }
+    bool isPrepared() const { return is_prepared; };
 
    private:
     void init();
@@ -86,6 +87,7 @@ class OpenGLWidget {
     // scene
     std::map<std::string, size_t> object_names;
     std::vector<OpenGLPrimitives::ObjectInfo> objects;
+    bool is_prepared = false;
 };
 
 }  // namespace gathering

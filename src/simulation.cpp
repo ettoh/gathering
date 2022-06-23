@@ -40,7 +40,7 @@ void Simulation::computeFrame(ForceSchedule& schedule,
     uint64_t frame_count = 0;  // for FPS; resets to 0 every second
     size_t step_count = 0;     // not reset
     std::chrono::microseconds t_sum = std::chrono::microseconds(0);
-    impl->gl.prepareInstance(impl->scene);
+    if (!impl->gl.isPrepared()) impl->gl.prepareInstance(impl->scene);
 
     while (true) {
         auto t_start = std::chrono::high_resolution_clock::now();
@@ -280,7 +280,8 @@ void Simulation::take_images(const int& slice_count) {
     up_vector.push_back(glm::vec3(0, 1, 0));
 
     impl->gl.setWindowVisibility(true);
-    impl->gl.prepareInstance(impl->scene);  // TODO avoid if scene is already prepared
+    if (!impl->gl.isPrepared())
+        impl->gl.prepareInstance(impl->scene);
     impl->gl.setImageMode(true);
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);  // viewport: x, y, width, height
@@ -358,7 +359,8 @@ void Simulation::runTime(const int milliseconds,
 
 void Simulation::showCurrentState() {
     impl->gl.setWindowVisibility(true);
-    impl->gl.prepareInstance(impl->scene);  // TODO avoid if scene is already prepared
+    if (!impl->gl.isPrepared())
+        impl->gl.prepareInstance(impl->scene); 
 
     while (true) {
         impl->gl.updateScene(impl->scene);

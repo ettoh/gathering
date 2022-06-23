@@ -19,8 +19,8 @@ int main() {
     // simulation.runTime(20, force_schedule, true);
     // simulation.showCurrentState();
     // simulation.run(force_schedule, true);
-    simulation.runTime(100, force_schedule, false);
-    // simulation.take_images(6);
+    simulation.runTime(30, force_schedule, false);
+    simulation.take_images(6);
     // simulation.showCurrentState();
     simulation.run(force_schedule, false);
 

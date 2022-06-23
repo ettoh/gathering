@@ -426,6 +426,8 @@ void OpenGLWidget::prepareInstance(SceneData& scene) {
             }
         }
     }
+
+    is_prepared = true;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -577,6 +579,7 @@ void OpenGLWidget::destroy() {
 // ------------------------------------------------------------------------------------------------
 
 void OpenGLWidget::deleteInstance() {
+    is_prepared = false;
     objects.clear();
     object_names.clear();
 }
