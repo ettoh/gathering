@@ -27,7 +27,8 @@ struct Simulation::SimulationImpl {
 
 Simulation::~Simulation() = default;
 
-Simulation::Simulation(const char* file, const float dt) : dt(dt) {
+Simulation::Simulation(const char* file, const float dt, const SimulationSettings& settings)
+    : dt(dt), settings(settings) {
     impl = std::make_unique<SimulationImpl>(file);
     stbi_flip_vertically_on_write(1);
 };
@@ -279,16 +280,22 @@ void Simulation::take_images(const int& slice_count) {
     up_vector.push_back(glm::vec3(0, 0, 1));
     up_vector.push_back(glm::vec3(0, 1, 0));
 
+    // get/set resolution
     impl->gl.setWindowVisibility(true);
-    if (!impl->gl.isPrepared())
-        impl->gl.prepareInstance(impl->scene);
-    impl->gl.setImageMode(true);
     GLint viewport[4];
     glGetIntegerv(GL_VIEWPORT, viewport);  // viewport: x, y, width, height
-    GLsizei stride = 3 * viewport[2];
-    GLsizei buffer_size = stride * viewport[3];
+    int width = settings.resolution.width;
+    int height = settings.resolution.height;
+    impl->gl.setWindowSize(width, height);
+    impl->gl.setImageMode(true);
+
+    // prepare scene and buffer
+    if (!impl->gl.isPrepared()) impl->gl.prepareInstance(impl->scene);
+    GLsizei stride = 3 * width;
+    GLsizei buffer_size = stride * height;
     std::vector<char> buffer(buffer_size);
 
+    // profile
     for (int i = 0; i < 3; ++i) {
         std::string file = std::to_string(i) + ".png";
         impl->gl.setProjection(projections[i]);
@@ -301,8 +308,8 @@ void Simulation::take_images(const int& slice_count) {
         // to image
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glReadBuffer(GL_FRONT);
-        glReadPixels(0, 0, viewport[2], viewport[3], GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
-        stbi_write_png(file.c_str(), viewport[2], viewport[3], 3, &buffer[0], 3 * viewport[2]);
+        glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
+        stbi_write_png(file.c_str(), width, height, 3, &buffer[0], 3 * width);
     }
 
     // slice
@@ -323,11 +330,13 @@ void Simulation::take_images(const int& slice_count) {
         // to image
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glReadBuffer(GL_FRONT);
-        glReadPixels(0, 0, viewport[2], viewport[3], GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
-        stbi_write_png(file.c_str(), viewport[2], viewport[3], 3, &buffer[0], 3 * viewport[2]);
+        glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
+        stbi_write_png(file.c_str(), width, height, 3, &buffer[0], 3 * width);
     }
 
+    // undo changes to gl
     impl->gl.setImageMode(false);
+    impl->gl.setWindowSize(viewport[2], viewport[3]);
 }
 
 // --------------------------------------------------------------------------------------------
@@ -359,8 +368,7 @@ void Simulation::runTime(const int milliseconds,
 
 void Simulation::showCurrentState() {
     impl->gl.setWindowVisibility(true);
-    if (!impl->gl.isPrepared())
-        impl->gl.prepareInstance(impl->scene); 
+    if (!impl->gl.isPrepared()) impl->gl.prepareInstance(impl->scene);
 
     while (true) {
         impl->gl.updateScene(impl->scene);

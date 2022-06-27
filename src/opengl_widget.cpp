@@ -39,7 +39,7 @@ void OpenGLWidget::init() {
     glfwWindowHint(GLFW_SAMPLES, 4);  // anti aliasing
 
     // Create window with graphics context
-    window = glfwCreateWindow(1920, 1080, "Gathering", NULL, NULL);  // TODO parameter
+    window = glfwCreateWindow(1280, 720, "Gathering", NULL, NULL);
     if (window == NULL) return;
     glfwMakeContextCurrent(window);
     glfwSwapInterval(0);  // vsync
@@ -138,6 +138,12 @@ void OpenGLWidget::init() {
     glVertexAttribDivisor(6, 1);
     glVertexAttribDivisor(7, 1);
     glBindVertexArray(0);
+}
+
+// ------------------------------------------------------------------------------------------------
+
+void OpenGLWidget::setWindowSize(const int width, const int height) const {
+    glfwSetWindowSize(window, width, height);
 }
 
 // ------------------------------------------------------------------------------------------------

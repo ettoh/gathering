@@ -46,6 +46,7 @@ class OpenGLWidget {
     void setView(const glm::mat4& view) { this->view = view; }
     void setProjection(const glm::mat4& projection) { this->projection = projection; }
     bool isPrepared() const { return is_prepared; };
+    void setWindowSize(const int width, const int height) const;
 
    private:
     void init();

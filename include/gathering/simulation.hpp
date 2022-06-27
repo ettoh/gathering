@@ -20,10 +20,21 @@ constexpr glm::vec3 BACK(0., 0., -1.);
 
 typedef std::vector<std::pair<double, glm::vec3>> ForceSchedule;
 
+struct Resolution {
+    int width;
+    int height;
+};
+
+struct SimulationSettings {
+    Resolution resolution = {1280, 720};
+};
+
 class Simulation {
    public:
     ~Simulation();
-    Simulation(const char* file, const float dt);
+    Simulation(const char* file,
+               const float dt,
+               const SimulationSettings& settings = SimulationSettings());
     Simulation(const Simulation& a) = delete;
     Simulation& operator=(const Simulation& a) = delete;
 
@@ -46,6 +57,7 @@ class Simulation {
     void update(const float dt);
     void findCollisionsParticles();
     void findCollisionsTriangles();
+    SimulationSettings settings;
 };
 
 }  // namespace gathering
