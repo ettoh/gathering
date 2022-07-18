@@ -23,6 +23,7 @@ git submodule update
 * OpenGL Mathematics (GLM) - https://github.com/g-truc/glm
 * GLFW - https://github.com/glfw/glfw
 * PyBind11 - https://github.com/pybind/pybind11
+* Eigen - https://eigen.tuxfamily.org/
 
 ## Build
 ### CMake options

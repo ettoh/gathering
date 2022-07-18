@@ -31,6 +31,7 @@ add_subdirectory(external)
 if(GATHERING_PYBIND)
     add_definitions(-DGATHERING_PYBIND)
     add_subdirectory(external/pybind11)
+    add_subdirectory(external/eigen)
 endif()
 
 if(GATHERING_PYBIND)
@@ -105,6 +106,7 @@ target_include_directories(gathering
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         external/glad/include
         external/stb
+        external/eigen
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )

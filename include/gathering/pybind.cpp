@@ -4,6 +4,7 @@
 #ifdef GATHERING_PYBIND
 
 #include <pybind11/pybind11.h>
+#include <Eigen/Dense>
 
 #include <memory>
 #include <string>
