@@ -4,19 +4,43 @@ project(gathering-simulator VERSION 0.1.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Options
+OPTION(GATHERING_BUILD_SAMPLES
+    "ON to build the examples." 
+    ON)
+OPTION(GATHERING_CREATE_DOCS
+    "ON to create the docs." 
+    OFF)
+OPTION(GATHERING_DEBUGPRINTS
+    "ON to enable debug prints." 
+    ON)
+OPTION(GATHERING_AUTO_HEADLESS
+    "ON to enable headless simulation when manually closing a window." 
+    ON)
+OPTION(GATHERING_PYBIND
+    "ON to build a MODULE library for python with PyBind11." 
+    ON)
+
 # GLM library
 include_directories(external/glm)
-
 # GLFW library
 add_subdirectory(external/glfw)
-
 # imgui library
 add_subdirectory(external)
+# pybind11 library
+if(GATHERING_PYBIND)
+    add_definitions(-DGATHERING_PYBIND)
+    add_subdirectory(external/pybind11)
+endif()
 
-add_library(gathering STATIC)
+if(GATHERING_PYBIND)
+    pybind11_add_module(gathering MODULE include/gathering/pybind.cpp)
+else()
+    add_library(gathering STATIC)
+endif()
 set_target_properties(gathering PROPERTIES PROJECT_SOURCE_DIR ${PROJECT_SOURCE_DIR})
 
-# Macro for copying resource files
+# macro for copying resource files
 macro(copy_resources target)
     get_target_property(source_dir gathering PROJECT_SOURCE_DIR) # to be independent of the calling target/project
     add_custom_command(
@@ -25,26 +49,8 @@ macro(copy_resources target)
         VERBATIM)
 endmacro()
 
-# Options
-OPTION(GATHERING_BUILD_SAMPLES
-    "Set to ON to build the examples." 
-    ON
-)
-OPTION(GATHERING_CREATE_DOCS
-    "Set to ON to create the docs." 
-    OFF
-)
-OPTION(GATHERING_DEBUGPRINTS
-    "Set to ON to enable debug prints." 
-    ON
-)
-OPTION(GATHERING_AUTO_HEADLESS
-    "Set to ON to enable headless simulation when manually closing a window." 
-    ON
-)
-
 # Examples
-if(GATHERING_BUILD_SAMPLES)
+if(GATHERING_BUILD_SAMPLES AND NOT GATHERING_PYBIND)
     add_subdirectory(./examples)
 endif()
 
@@ -103,7 +109,7 @@ target_include_directories(gathering
         ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
-target_link_libraries(gathering glfw imgui)
+target_link_libraries(gathering PRIVATE glfw imgui)
 
 if(UNIX)
     set_target_properties(gathering

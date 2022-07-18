@@ -139,7 +139,7 @@ void SceneData::loadObject(const char* path) {
     StopWatch<std::chrono::milliseconds> stopwatch = StopWatch<std::chrono::milliseconds>();
     std::ifstream file(path);
     if (!file) {
-        printf("Failed to load shader %s\n", path);
+        printf("Failed to load instance %s\n", path);
         assert(false);
         exit(EXIT_FAILURE);
     }

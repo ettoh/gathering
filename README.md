@@ -13,10 +13,16 @@ git submodule init
 git submodule update
 ```
 
+### Requirements
+* OpenGl 4.6
+* Python 3.6+ (optional)
+* Doxygen (optional)
+
 ### Third-party libraries (included by git submodules)
 * Dear ImGui - https://github.com/ocornut/imgui
 * OpenGL Mathematics (GLM) - https://github.com/g-truc/glm
 * GLFW - https://github.com/glfw/glfw
+* PyBind11 - https://github.com/pybind/pybind11
 
 ## Build
 ### CMake options
@@ -28,9 +34,7 @@ git submodule update
 |``GATHERING_BUILD_SAMPLES=ON``|Build examples|``ON``|
 |``GATHERING_DEBUGPRINTS=ON``  |Debug prints enabled|``ON``|
 |``GATHERING_AUTO_HEADLESS=ON``|Automatically switches to headless simuluation when manually closing a window|``ON``|
-
-## Camera controls
-...
+|``GATHERING_PYBIND=ON``|Build a MODULE library for python with _PyBind11_|``ON``|
 
 ## Credits / Attributions
 * OpenGL is a trademark of the [Khronos Group Inc.](http://www.khronos.org)

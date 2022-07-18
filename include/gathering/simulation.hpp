@@ -29,6 +29,8 @@ struct SimulationSettings {
     Resolution resolution = {1280, 720};
 };
 
+// ------------------------------------------------------------------------------------------------
+
 class Simulation {
    public:
     ~Simulation();
@@ -40,6 +42,7 @@ class Simulation {
 
     void addParticles(const int n, const float mass_mean, const float mass_stddev);
     void showCurrentState();
+    // TODO double for duration
     void runTime(const int milliseconds, ForceSchedule& schedule, const bool headless);
     void runSteps(const int n, ForceSchedule& schedule, const bool headless);
     void run(ForceSchedule& schedule, const bool headless);
@@ -59,6 +62,8 @@ class Simulation {
     void findCollisionsTriangles();
     SimulationSettings settings;
 };
+
+// ------------------------------------------------------------------------------------------------
 
 }  // namespace gathering
 
