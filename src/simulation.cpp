@@ -11,10 +11,28 @@
 #include "opengl_widget.hpp"
 #include "scene.hpp"
 
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "stb_image_write.h"
-
 namespace gathering {
+
+// --------------------------------------------------------------------------------------------
+
+void ImageContainer::clear() { content_count = 0; }
+
+void ImageContainer::free() {
+    content_count = 0;
+    images.clear();
+}
+
+void* ImageContainer::data(const size_t size) {
+    if (content_count >= images.size()) {
+        images.push_back(std::vector<unsigned char>());
+    }
+
+    if (images[content_count].capacity() != size) {
+        images[content_count].resize(size);
+    }
+
+    return images[content_count++].data();
+}
 
 // --------------------------------------------------------------------------------------------
 
@@ -30,7 +48,6 @@ Simulation::~Simulation() = default;
 Simulation::Simulation(const char* file, const float dt, const SimulationSettings& settings)
     : dt(dt), settings(settings) {
     impl = std::make_unique<SimulationImpl>(file);
-    stbi_flip_vertically_on_write(1);
 };
 
 // --------------------------------------------------------------------------------------------
@@ -245,10 +262,11 @@ void Simulation::findCollisionsTriangles() {
 
 // ------------------------------------------------------------------------------------------------
 
-void Simulation::take_images(const int& slice_count) {
+ImageContainer& Simulation::take_images(const int& slice_count) {
     // calc camera positions for images
     glm::vec3 vessel_radius = (impl->scene.vessel_bb.max - impl->scene.vessel_bb.min) / 2.0f;
     glm::vec3 vessel_center = impl->scene.vessel_bb.min + vessel_radius;
+    images.clear();
 
     std::vector<glm::vec3> camera_positions;
     camera_positions.push_back(vessel_center + glm::vec3(vessel_radius.x, 0, 0));
@@ -291,13 +309,9 @@ void Simulation::take_images(const int& slice_count) {
 
     // prepare scene and buffer
     if (!impl->gl.isPrepared()) impl->gl.prepareInstance(impl->scene);
-    GLsizei stride = 3 * width;
-    GLsizei buffer_size = stride * height;
-    std::vector<char> buffer(buffer_size);
 
     // profile
     for (int i = 0; i < 3; ++i) {
-        std::string file = std::to_string(i) + ".png";
         impl->gl.setProjection(projections[i]);
         impl->gl.setView(glm::lookAt(camera_positions[i],
                                      vessel_center,
@@ -308,8 +322,8 @@ void Simulation::take_images(const int& slice_count) {
         // to image
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glReadBuffer(GL_FRONT);
-        glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
-        stbi_write_png(file.c_str(), width, height, 3, &buffer[0], 3 * width);
+        glReadPixels(
+            0, 0, width, height, GL_RED, GL_UNSIGNED_BYTE, images.data(width * height));
     }
 
     // slice
@@ -318,7 +332,6 @@ void Simulation::take_images(const int& slice_count) {
                                  vessel_center,
                                  up_vector[2]));  // (position, look at, up))
     for (float i = 0; i < slice_count; ++i) {
-        std::string file = "slice_" + std::to_string((int)i) + ".png";
         impl->gl.setProjection(glm::ortho(-vessel_radius.x - 1.0f,
                                           vessel_radius.x + 1.0f,
                                           -vessel_radius.z - 1.0f,
@@ -330,13 +343,14 @@ void Simulation::take_images(const int& slice_count) {
         // to image
         glPixelStorei(GL_PACK_ALIGNMENT, 1);
         glReadBuffer(GL_FRONT);
-        glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, buffer.data());
-        stbi_write_png(file.c_str(), width, height, 3, &buffer[0], 3 * width);
+        glReadPixels(
+            0, 0, width, height, GL_RED, GL_UNSIGNED_BYTE, images.data(width * height));
     }
 
     // undo changes to gl
     impl->gl.setImageMode(false);
     impl->gl.setWindowSize(viewport[2], viewport[3]);
+    return images;
 }
 
 // --------------------------------------------------------------------------------------------

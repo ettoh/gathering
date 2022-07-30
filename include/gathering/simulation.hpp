@@ -31,6 +31,15 @@ struct SimulationSettings {
 
 // ------------------------------------------------------------------------------------------------
 
+struct ImageContainer {
+    std::vector<std::vector<unsigned char>> images;
+    size_t content_count = 0;
+
+    void clear();
+    void free();
+    void* data(const size_t size);
+};
+
 class Simulation {
    public:
     ~Simulation();
@@ -46,7 +55,8 @@ class Simulation {
     void runTime(const int milliseconds, ForceSchedule& schedule, const bool headless);
     void runSteps(const int n, ForceSchedule& schedule, const bool headless);
     void run(ForceSchedule& schedule, const bool headless);
-    void take_images(const int& slice_count);
+    ImageContainer& take_images(const int& slice_count);
+    const SimulationSettings& getSettings() const { return settings; };
 
     float dt = 0.0;
 
@@ -61,6 +71,7 @@ class Simulation {
     void findCollisionsParticles();
     void findCollisionsTriangles();
     SimulationSettings settings;
+    ImageContainer images;
 };
 
 // ------------------------------------------------------------------------------------------------

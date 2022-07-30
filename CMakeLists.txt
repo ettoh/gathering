@@ -18,7 +18,7 @@ OPTION(GATHERING_AUTO_HEADLESS
     "ON to enable headless simulation when manually closing a window." 
     ON)
 OPTION(GATHERING_PYBIND
-    "ON to build a MODULE library for python with PyBind11." 
+    "ON to build a MODULE library for python using PyBind11." 
     ON)
 
 # GLM library
@@ -105,7 +105,6 @@ target_include_directories(gathering
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/src
         external/glad/include
-        external/stb
         external/eigen
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}/include
