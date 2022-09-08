@@ -19,7 +19,7 @@ OPTION(GATHERING_AUTO_HEADLESS
     ON)
 OPTION(GATHERING_PYBIND
     "ON to build a MODULE library for python using PyBind11." 
-    ON)
+    OFF)
 
 # GLM library
 include_directories(external/glm)
@@ -54,6 +54,8 @@ endmacro()
 if(GATHERING_BUILD_SAMPLES AND NOT GATHERING_PYBIND)
     add_subdirectory(./examples)
 endif()
+
+add_subdirectory(./src/instance_generator)
 
 # docs
 if(GATHERING_CREATE_DOCS)

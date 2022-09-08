@@ -197,7 +197,8 @@ void SceneData::loadObject(const char* path) {
                 v3n_idx--;
 
                 // add normal to vertices
-                vessel.vertices[v1_idx].normal = vertex_normals[v1n_idx];
+                vessel.vertices[v1_idx].normal =
+                    vertex_normals[v1n_idx];  // wrong, but only used for visualization
                 vessel.vertices[v2_idx].normal = vertex_normals[v2n_idx];
                 vessel.vertices[v3_idx].normal = vertex_normals[v3n_idx];
 
@@ -208,7 +209,8 @@ void SceneData::loadObject(const char* path) {
                 // Triangle for collision detection
                 Triangle t = Triangle(vessel.vertices[v1_idx].position,
                                       vessel.vertices[v2_idx].position,
-                                      vessel.vertices[v3_idx].position);
+                                      vessel.vertices[v3_idx].position,
+                                      vertex_normals[v1n_idx]);
                 triangles.push_back(t);
 
                 // meta
@@ -232,6 +234,10 @@ void SceneData::loadObject(const char* path) {
                 break;
         }
     }
+
+    // padding for global BB to avoid "touching" triangles
+    vessel_bb.max += glm::vec3(5.f);
+    vessel_bb.min -= glm::vec3(5.f);
 
     // create grid
     vec3i resolution = (vessel_bb.max - vessel_bb.min) / max_triangle_size;

@@ -50,6 +50,13 @@ class Triangle {
         bb = AABB(glm::min(glm::min(a, b), c), glm::max(glm::max(a, b), c));
         normal = glm::normalize(glm::cross(b - a, c - a));
     };
+    Triangle(const glm::vec3& a,
+             const glm::vec3& b,
+             const glm::vec3& c,
+             const glm::vec3& normal)
+        : a(a), b(b), c(c), normal(normal) {
+        bb = AABB(glm::min(glm::min(a, b), c), glm::max(glm::max(a, b), c));
+    };
     float intersect(const Ray& ray) const;
 };
 
